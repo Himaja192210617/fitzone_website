@@ -1,0 +1,209 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Check, FileUp, Info, ChevronRight } from 'lucide-react';
+import api from '../api/api';
+import { useAuth } from '../context/AuthContext';
+import WebLayout from '../components/WebLayout';
+
+const UploadDataScreen = () => {
+    const navigate = useNavigate();
+    const { user } = useAuth();
+
+    const [historicalFile, setHistoricalFile] = useState(null);
+    const [membersFile, setMembersFile] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleUpload = async () => {
+        if (!historicalFile || !membersFile) return;
+        setIsLoading(true);
+
+        const formDataH = new FormData();
+        formDataH.append('file', historicalFile);
+        formDataH.append('admin_user_id', user.user_id);
+
+        const formDataM = new FormData();
+        formDataM.append('file', membersFile);
+        formDataM.append('admin_user_id', user.user_id);
+
+        try {
+            // Upload historical
+            await api.post('/upload-historical-data', formDataH, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+
+            // Upload members
+            await api.post('/upload-gym-members', formDataM, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+
+            navigate('/set-capacity');
+        } catch (err) {
+            alert(err.response?.data?.message || 'Upload failed');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <WebLayout>
+            <div className="main-viewport">
+                {/* Header */}
+                <header className="app-header-premium">
+                    <div className="header-content-flex">
+                        <button onClick={() => navigate('/configure-hours')} className="back-btn-modern">
+                            <ArrowLeft size={22} color="white" />
+                        </button>
+                        <div className="header-text-main">
+                            <h1 className="header-title-premium">Import Data</h1>
+                            <p className="header-subtitle-premium">Training the AI • Step 3/3</p>
+                        </div>
+                    </div>
+                </header>
+
+                <main className="content-area-premium">
+                    <div className="section-px">
+                        <div className="spacer-24"></div>
+
+                        {/* Info Card */}
+                        <div className="card-premium mb-24 bg-soft-blue">
+                            <div className="flex items-start gap-12">
+                                <div className="info-icon-box-blue">
+                                    <Info size={18} color="#3B82F6" />
+                                </div>
+                                <div>
+                                    <h4 className="font-700 text-15 mb-4 text-blue-900">Training your AI Model</h4>
+                                    <p className="text-13 text-slate-600 line-15">
+                                        To predict crowd levels accurately, our AI needs your past 1 month of booking data and current member list.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Historical Data */}
+                        <div className="upload-section mb-24">
+                            <h3 className="label-modern mb-12">1. Past Bookings (.xlsx)</h3>
+                            <label className={`upload-card-modern ${historicalFile ? 'uploaded' : ''}`}>
+                                <FileUp size={28} className="upload-icon" />
+                                <div className="upload-text-content">
+                                    <span className="upload-main-text">
+                                        {historicalFile ? historicalFile.name : "Select Historical File"}
+                                    </span>
+                                    <span className="upload-sub-text">
+                                        {historicalFile ? "File selected successfully" : "date, slot, bookingCount"}
+                                    </span>
+                                </div>
+                                <input
+                                    type="file"
+                                    accept=".xlsx, .xls, .csv"
+                                    className="hidden-input"
+                                    onChange={(e) => setHistoricalFile(e.target.files[0])}
+                                />
+                                {historicalFile && <div className="success-dot"><Check size={12} color="white" /></div>}
+                            </label>
+                        </div>
+
+                        {/* Members Data */}
+                        <div className="upload-section mb-32">
+                            <h3 className="label-modern mb-12">2. Members List (.xlsx)</h3>
+                            <label className={`upload-card-modern ${membersFile ? 'uploaded' : ''}`}>
+                                <FileUp size={28} className="upload-icon" />
+                                <div className="upload-text-content">
+                                    <span className="upload-main-text">
+                                        {membersFile ? membersFile.name : "Select Members File"}
+                                    </span>
+                                    <span className="upload-sub-text">
+                                        {membersFile ? "File selected successfully" : "memberId, name, email"}
+                                    </span>
+                                </div>
+                                <input
+                                    type="file"
+                                    accept=".xlsx, .xls, .csv"
+                                    className="hidden-input"
+                                    onChange={(e) => setMembersFile(e.target.files[0])}
+                                />
+                                {membersFile && <div className="success-dot"><Check size={12} color="white" /></div>}
+                            </label>
+                        </div>
+
+                        {/* Actions */}
+                        <button
+                            onClick={handleUpload}
+                            disabled={isLoading || !historicalFile || !membersFile}
+                            className={`btn btn-primary btn-xl w-full ${(!historicalFile || !membersFile) ? 'btn-disabled' : ''}`}
+                        >
+                            {isLoading ? (
+                                <div className="flex items-center gap-12">
+                                    <div className="spinner-small"></div>
+                                    <span>Processing Data...</span>
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-8">
+                                    <span>Proceed to Capacity</span>
+                                    <ChevronRight size={20} />
+                                </div>
+                            )}
+                        </button>
+                    </div>
+
+                    <div className="spacer-40"></div>
+                </main>
+            </div>
+
+            <style jsx>{`
+                .main-viewport { flex: 1; display: flex; flex-direction: column; background-color: #F8FAFC; }
+                
+                @media (min-width: 1024px) {
+                    .main-viewport { background-color: transparent; }
+                    .content-area-premium { max-width: 600px; margin: 0 auto; width: 100%; padding: 0 48px; }
+                    .app-header-premium { padding: 60px 48px 40px !important; border-bottom-left-radius: 40px !important; border-bottom-right-radius: 40px !important; margin-bottom: 24px; }
+                    .section-px { padding: 0 !important; }
+                }
+
+                .section-px { padding: 0 24px; }
+                
+                .header-content-flex { display: flex; align-items: center; gap: 16px; }
+                .back-btn-modern { background: rgba(255,255,255,0.1); border: none; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+                
+                .bg-soft-blue { background: #EFF6FF; border: 1.5px solid #DBEAFE; }
+                .info-icon-box-blue { background: white; width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(59, 130, 246, 0.05); }
+
+                .label-modern { font-size: 13px; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; }
+
+                .upload-card-modern { 
+                    display: flex; align-items: center; gap: 16px; padding: 20px; 
+                    background: white; border: 2px dashed #E2E8F0; border-radius: 20px; 
+                    cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    position: relative;
+                }
+                .upload-card-modern:hover { border-color: var(--primary); background: #F8FAFC; transform: translateY(-2px); }
+                .upload-card-modern.uploaded { border-style: solid; border-color: var(--primary); background: #F0FDF4; }
+
+                .upload-icon { color: #94A3B8; transition: color 0.3s; }
+                .uploaded .upload-icon { color: var(--primary); }
+
+                .upload-text-content { display: flex; flex-direction: column; gap: 2px; }
+                .upload-main-text { font-size: 15px; font-weight: 700; color: #1E293B; }
+                .upload-sub-text { font-size: 11px; font-weight: 600; color: #94A3B8; }
+
+                .hidden-input { display: none; }
+
+                .success-dot { 
+                    position: absolute; right: 20px; width: 24px; height: 24px; 
+                    background: var(--primary); border-radius: 50%; 
+                    display: flex; align-items: center; justify-content: center;
+                    animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                }
+                @keyframes pop { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+                .btn-disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
+                .btn-xl { height: 56px; border-radius: 16px; font-size: 16px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+
+                .spinner-small { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
+                @keyframes spin { to { transform: rotate(360deg); } }
+                .line-15 { line-height: 1.5; }
+            `}</style>
+        </WebLayout>
+    );
+};
+
+export default UploadDataScreen;
