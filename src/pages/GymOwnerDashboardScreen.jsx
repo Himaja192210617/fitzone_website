@@ -139,13 +139,9 @@ const GymOwnerDashboardScreen = () => {
             return;
         }
 
-        // Mobile validation (as memberId): should start with 6, 7, 8, or 9 and be 10 digits
-        if (!/^[6-9]/.test(memberId)) {
-            alert("Mobile number must start with 6, 7, 8, or 9");
-            return;
-        }
-        if (!/^\d{10}$/.test(memberId)) {
-            alert("Mobile number must be exactly 10 digits");
+        // Member ID validation: should be non-empty
+        if (!memberId || memberId.trim().length === 0) {
+            alert("Member ID cannot be empty");
             return;
         }
         
@@ -751,6 +747,7 @@ const WebSettingsSection = ({ gymHours, onUpdate, metrics }) => {
         try {
             await api.post('/remove-holiday', { 
                 admin_user_id: user.user_id, 
+                gym_id: metrics.gym_id,
                 holiday_date: date 
             });
             setHolidays(prev => prev.filter(h => h !== date));
@@ -793,6 +790,7 @@ const WebSettingsSection = ({ gymHours, onUpdate, metrics }) => {
         try {
             await api.post('/remove-morning-only', { 
                 admin_user_id: user.user_id, 
+                gym_id: metrics.gym_id,
                 special_date: date 
             });
             setMorningOnly(prev => prev.filter(m => m !== date));
