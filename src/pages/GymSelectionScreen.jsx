@@ -98,7 +98,7 @@ const GymSelectionScreen = () => {
                         </div>
 
                         {/* Gym List */}
-                        <div className="section-header-row mb-16">
+                        <div className="section-header-row mb-16 px-4">
                             <h2 className="title-bolt text-18">Available Gyms</h2>
                             <span className="text-12 text-grey-light uppercase tracking-wider font-700">
                                 {filteredGyms.length} Results
@@ -110,78 +110,82 @@ const GymSelectionScreen = () => {
                                 <div className="spinner-primary"></div>
                             </div>
                         ) : (
-                            <div className="gym-grid">
-                                {filteredGyms.map(gym => (
-                                    <div
-                                        key={gym.gym_id}
-                                        className={`gym-card-premium ${selectedGym?.gym_id === gym.gym_id ? 'active' : ''}`}
-                                        onClick={() => setSelectedGym(gym)}
-                                    >
-                                        <div className="gym-card-inner">
-                                            <div className="gym-icon-box">
-                                                <Building size={20} color={selectedGym?.gym_id === gym.gym_id ? 'white' : 'var(--primary)'} />
-                                            </div>
-                                            <div className="gym-details">
-                                                <h3 className="gym-name-premium">{gym.gym_name}</h3>
-                                                <div className="flex items-center gap-4 mt-4">
-                                                    <MapPin size={12} color="#94A3B8" />
-                                                    <span className="gym-location-premium">{gym.location}, {gym.city}</span>
+                            <div className="gym-roller-container">
+                                <div className="gym-roller">
+                                    {filteredGyms.map(gym => (
+                                        <div
+                                            key={gym.gym_id}
+                                            className={`gym-card-premium roller-item ${selectedGym?.gym_id === gym.gym_id ? 'active' : ''}`}
+                                            onClick={() => setSelectedGym(gym)}
+                                        >
+                                            <div className="gym-card-inner">
+                                                <div className="gym-icon-box">
+                                                    <Building size={20} color={selectedGym?.gym_id === gym.gym_id ? 'white' : 'var(--primary)'} />
                                                 </div>
-                                            </div>
-                                            {selectedGym?.gym_id === gym.gym_id && (
-                                                <div className="selected-badge animate-pop">
-                                                    <Check size={14} color="white" strokeWidth={3} />
+                                                <div className="gym-details">
+                                                    <h3 className="gym-name-premium">{gym.gym_name}</h3>
+                                                    <div className="flex items-center gap-4 mt-4">
+                                                        <MapPin size={12} color="#94A3B8" />
+                                                        <span className="gym-location-premium">{gym.city}</span>
+                                                    </div>
                                                 </div>
-                                            )}
+                                                {selectedGym?.gym_id === gym.gym_id && (
+                                                    <div className="selected-badge animate-pop">
+                                                        <Check size={14} color="white" strokeWidth={3} />
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    ))}
 
-                                {filteredGyms.length === 0 && (
-                                    <div className="empty-state-card py-40 text-center">
-                                        <div className="text-40 mb-12">🔍</div>
-                                        <h3 className="font-700 text-16 text-slate-400">No gyms found</h3>
-                                        <p className="text-13 text-slate-300">Try searching for a different city</p>
-                                    </div>
-                                )}
+                                    {filteredGyms.length === 0 && (
+                                        <div className="empty-state-card py-40 text-center w-full">
+                                            <div className="text-40 mb-12">🔍</div>
+                                            <h3 className="font-700 text-16 text-slate-400">No gyms found</h3>
+                                            <p className="text-13 text-slate-300">Try searching for a different city</p>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         )}
 
-                        <div className="spacer-32"></div>
+                        <div className="spacer-40"></div>
 
-                        {/* Member ID Input */}
-                        <div className={`card-premium mb-32 transition-all ${selectedGym ? 'opacity-100' : 'opacity-40 grayscale pointer-events-none'}`}>
-                            <label className="label-modern mb-12 block">Your Member ID</label>
-                            <div className="input-modern-wrapper">
-                                <div className="input-icon">
-                                    <span className="text-16 font-700 text-slate-400">#</span>
+                        {/* Member ID Input & Actions - Fixed at bottom area */}
+                        <div className="bottom-action-area">
+                            <div className={`card-premium mb-24 transition-all ${selectedGym ? 'active-input' : 'opacity-40 grayscale pointer-events-none'}`}>
+                                <label className="label-modern mb-12 block">Enter Gym Member ID</label>
+                                <div className="input-modern-wrapper">
+                                    <div className="input-icon">
+                                        <span className="text-16 font-700 text-slate-400">#</span>
+                                    </div>
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. MEM001"
+                                        className="input-modern-clean"
+                                        value={memberId}
+                                        onChange={e => setMemberId(e.target.value)}
+                                        disabled={!selectedGym}
+                                    />
                                 </div>
-                                <input
-                                    type="text"
-                                    placeholder="e.g. MEM001"
-                                    className="input-modern-clean"
-                                    value={memberId}
-                                    onChange={e => setMemberId(e.target.value)}
-                                    disabled={!selectedGym}
-                                />
+                                <p className="text-11 text-grey-light mt-12">Select a gym above first, then enter your ID.</p>
                             </div>
-                            <p className="text-11 text-grey-light mt-12">Enter the ID provided by your gym management.</p>
-                        </div>
 
-                        <button
-                            onClick={handleVerify}
-                            className={`btn btn-primary btn-xl w-full ${(!selectedGym || !memberId) ? 'btn-disabled' : ''}`}
-                            disabled={!selectedGym || !memberId || verifying}
-                        >
-                            {verifying ? (
-                                <div className="flex items-center gap-12">
-                                    <div className="spinner-small"></div>
-                                    <span>Verifying...</span>
-                                </div>
-                            ) : (
-                                "Verify & Continue"
-                            )}
-                        </button>
+                            <button
+                                onClick={handleVerify}
+                                className={`btn btn-primary btn-xl w-full ${(!selectedGym || !memberId) ? 'btn-disabled' : ''}`}
+                                disabled={!selectedGym || !memberId || verifying}
+                            >
+                                {verifying ? (
+                                    <div className="flex items-center gap-12">
+                                        <div className="spinner-small"></div>
+                                        <span>Verifying...</span>
+                                    </div>
+                                ) : (
+                                    "Confirm & Start Training"
+                                )}
+                            </button>
+                        </div>
                     </div>
 
                     <div className="spacer-40"></div>
@@ -195,7 +199,6 @@ const GymSelectionScreen = () => {
                     .main-viewport { background-color: transparent; }
                     .content-area-premium { max-width: 1000px; margin: 0 auto; width: 100%; padding: 0 48px; }
                     .app-header-premium { padding: 60px 48px 40px !important; border-bottom-left-radius: 40px !important; border-bottom-right-radius: 40px !important; margin-bottom: 24px; }
-                    .gym-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
                     .mobile-only { display: none !important; }
                     .section-px { padding: 0 !important; }
                 }
@@ -215,7 +218,23 @@ const GymSelectionScreen = () => {
                 }
                 .search-input-premium:focus { border-color: var(--primary); outline: none; box-shadow: 0 8px 16px rgba(27, 184, 91, 0.08); }
 
-                .gym-grid { display: flex; flex-direction: column; gap: 12px; }
+                /* Horizontal Roller Styles */
+                .gym-roller-container { 
+                    margin: 0 -24px; 
+                    padding: 10px 24px 24px; 
+                    overflow-x: auto; 
+                    scrollbar-width: none; /* Firefox */
+                }
+                .gym-roller-container::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+                
+                .gym-roller { display: flex; gap: 16px; min-width: min-content; }
+                
+                .roller-item { 
+                    flex: 0 0 280px; 
+                    background: white; border-radius: 20px; border: 1.5px solid #F1F5F9; 
+                    padding: 24px; cursor: pointer; transition: all 0.3s ease;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+                }
                 
                 .gym-card-premium { 
                     background: white; border-radius: 20px; border: 1.5px solid #F1F5F9; 

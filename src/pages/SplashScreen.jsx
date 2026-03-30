@@ -1,151 +1,126 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 
-const Home = () => {
+const SplashScreen = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
-    const [animate, setAnimate] = useState(false);
+    const [progress, setProgress] = useState(0);
 
     useEffect(() => {
-        setAnimate(true);
-        const timer = setTimeout(() => {
-            navigate('/login');
-        }, 2500); // 2.5 seconds splash
+        const duration = 8000; // 8 seconds
+        const interval = 50; 
+        const step = (interval / duration) * 100;
 
-        return () => clearTimeout(timer);
-    }, [user, navigate]);
+        const progressTimer = setInterval(() => {
+            setProgress(prev => {
+                if (prev >= 100) {
+                    clearInterval(progressTimer);
+                    return 100;
+                }
+                return prev + step;
+            });
+        }, interval);
+
+        const navigateTimer = setTimeout(() => {
+            // After splash, navigate to login or dashboard
+            // For now, consistent with user request to "start" with splash
+            navigate('/login');
+        }, duration);
+
+        return () => {
+            clearInterval(progressTimer);
+            clearTimeout(navigateTimer);
+        };
+    }, [navigate]);
 
     return (
-        <div className="splash-screen">
-            <div className={`splash-content ${animate ? 'animate' : ''}`}>
-                {/* Logo Circle */}
-                <div className="logo-circle">
-                    <span className="logo-emoji">💪</span>
-                </div>
+        <div className="fitzone-splash-container">
+            {/* Animated Background Blobs */}
+            <motion.div 
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 0.1, scale: 1.2 }}
+                transition={{ duration: 4, repeat: Infinity, repeatType: "mirror" }}
+                className="splash-blob splash-blob-1"
+            ></motion.div>
+            <motion.div 
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 0.1, scale: 1.2 }}
+                transition={{ duration: 5, delay: 1, repeat: Infinity, repeatType: "mirror" }}
+                className="splash-blob splash-blob-2"
+            ></motion.div>
 
-                <div className="spacer-60"></div>
-
-                {/* App Name */}
-                <h1 className="brand-name">FitZone</h1>
-                <p className="brand-subtitle">Smart Gym Management System</p>
-
-                <div className="spacer-80"></div>
-
-                {/* Feature Icons */}
-                <div className="feature-row">
-                    <div className="feature-icon-item">
-                        <div className="feature-icon-box">⚡</div>
-                        <span className="feature-label">AI Powered</span>
+            <div className="splash-content-wrapper">
+                {/* Logo Section */}
+                <motion.div 
+                    initial={{ y: -50, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ type: "spring", stiffness: 100, damping: 15 }}
+                    className="splash-logo-box"
+                >
+                    <div className="logo-inner pulse-premium">
+                        <span className="logo-icon-emoji">💪</span>
                     </div>
-                    <div className="feature-icon-item">
-                        <div className="feature-icon-box">📈</div>
-                        <span className="feature-label">Real-time Tracking</span>
+                </motion.div>
+
+                {/* Brand Section */}
+                <motion.div 
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 0.3, duration: 0.8 }}
+                    className="splash-brand-info"
+                >
+                    <h1 className="fitzone-title-main">FitZone</h1>
+                    <div className="fitzone-underline-accent"></div>
+                    <p className="fitzone-tagline-premium">Elevate Your Fitness Experience</p>
+                </motion.div>
+
+                {/* Progress Section */}
+                <div className="splash-progress-host">
+                    <div className="fitzone-progress-track">
+                        <motion.div 
+                            className="fitzone-progress-fill" 
+                            style={{ width: `${progress}%` }}
+                            transition={{ ease: "linear" }}
+                        ></motion.div>
+                    </div>
+                    <div className="fitzone-loading-meta">
+                        <span className="loading-text-anim">Initializing System...</span>
+                        <span className="loading-perc">{Math.round(progress)}%</span>
                     </div>
                 </div>
 
-                <div className="spacer-60"></div>
-
-                {/* Dot Indicators */}
-                <div className="dot-row">
-                    <div className="dot"></div>
-                    <div className="dot"></div>
-                    <div className="dot"></div>
-                </div>
+                {/* Glassmorphic Features */}
+                <motion.div 
+                    initial={{ opacity: 0, filter: "blur(10px)" }}
+                    animate={{ opacity: 1, filter: "blur(0px)" }}
+                    transition={{ delay: 1.5, duration: 1 }}
+                    className="fitzone-features-glass"
+                >
+                    <div className="glass-feature-item">
+                        <span className="feature-emoji-icon">🤖</span>
+                        <span className="feature-label-text">AI Predictions</span>
+                    </div>
+                    <div className="glass-feature-sep"></div>
+                    <div className="glass-feature-item">
+                        <span className="feature-emoji-icon">📅</span>
+                        <span className="feature-label-text">Smart Slots</span>
+                    </div>
+                </motion.div>
             </div>
 
-            <style jsx>{`
-        .splash-screen {
-          height: 100vh;
-          width: 100vw;
-          background: white;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          overflow: hidden;
-        }
-        .splash-content {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          opacity: 0;
-          transform: scale(0.8);
-          transition: all 0.8s ease-out;
-        }
-        .splash-content.animate {
-          opacity: 1;
-          transform: scale(1);
-        }
-        
-        .logo-circle {
-          width: 200px;
-          height: 200px;
-          background-color: var(--primary);
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 10px 20px rgba(27, 184, 91, 0.2);
-        }
-        .logo-emoji {
-          font-size: 80px;
-        }
-        
-        .brand-name {
-          font-size: 56px;
-          font-weight: 800;
-          color: var(--primary);
-          margin: 0;
-        }
-        .brand-subtitle {
-          font-size: 16px;
-          color: #666666;
-          margin: 4px 0 0;
-          font-weight: 500;
-        }
-        
-        .feature-row {
-          display: flex;
-          gap: 40px;
-        }
-        .feature-icon-item {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 8px;
-        }
-        .feature-icon-box {
-          width: 60px;
-          height: 60px;
-          background: rgba(27, 184, 91, 0.1);
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 28px;
-        }
-        .feature-label {
-          font-size: 12px;
-          color: #666666;
-          font-weight: 600;
-        }
-        
-        .dot-row {
-          display: flex;
-          gap: 12px;
-        }
-        .dot {
-          width: 12px;
-          height: 12px;
-          background-color: var(--primary);
-          border-radius: 50%;
-        }
-        
-        .spacer-60 { height: 60px; }
-        .spacer-80 { height: 80px; }
-      `}</style>
+            {/* Footer Branding */}
+            <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 2 }}
+                className="fitzone-splash-footer"
+            >
+                <p>powered by <span className="simats-brand">SIMATS ENGINEERING</span></p>
+            </motion.div>
         </div>
     );
 };
 
-export default Home;
+export default SplashScreen;

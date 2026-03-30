@@ -26,6 +26,37 @@ const EditProfileScreen = () => {
 
     const handleSave = async () => {
         if (!name || !email) return;
+
+        // Name validation: should not contain numbers
+        if (/\d/.test(name)) {
+            alert("Name should not contain numbers");
+            return;
+        }
+        
+        // Age validation: not more than 125
+        if (age && parseInt(age) > 125) {
+            alert("Age cannot be more than 125");
+            return;
+        }
+
+        // Email validation: should not start with a number
+        if (/^\d/.test(email)) {
+            alert("Email address should not start with a number");
+            return;
+        }
+
+        // Mobile validation: should start with 6, 7, 8, or 9 and be 10 digits
+        if (phone) {
+            if (!/^[6-9]/.test(phone)) {
+                alert("Mobile number must start with 6, 7, 8, or 9");
+                return;
+            }
+            if (!/^\d{10}$/.test(phone)) {
+                alert("Mobile number must be exactly 10 digits");
+                return;
+            }
+        }
+
         setIsSaving(true);
         try {
             const response = await api.post('/update-profile', {

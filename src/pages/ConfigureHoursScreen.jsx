@@ -13,14 +13,15 @@ import api from '../api/api';
 import WebLayout from '../components/WebLayout';
 
 const ConfigureHoursScreen = () => {
+    const { user } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
-    const gymId = location.state?.gymId;
+    const gymId = location.state?.gymId || user?.gym_id;
 
     const [loading, setLoading] = useState(false);
     const [morning, setMorning] = useState({ open: '06:00', close: '11:00' });
-    const [afternoon, setAfternoon] = useState({ enabled: false, open: '12:00', close: '15:00' });
-    const [evening, setEvening] = useState({ enabled: true, open: '16:00', close: '21:00' });
+    const [afternoon, setAfternoon] = useState({ enabled: false, open: '12:00', close: '14:30' });
+    const [evening, setEvening] = useState({ enabled: true, open: '16:00', close: '22:00' });
 
     React.useEffect(() => {
         const fetchHours = async () => {
@@ -44,6 +45,45 @@ const ConfigureHoursScreen = () => {
     }, [gymId, location.state]);
 
     const handleSave = async () => {
+        // Validation logic
+        const validateTime = (time, start, end) => {
+            return time >= start && time <= end;
+        };
+
+        // Morning validation
+        if (!validateTime(morning.open, '04:00', '11:59') || !validateTime(morning.close, '04:00', '11:59')) {
+            alert("Morning session must be between 04:00 and 11:59");
+            return;
+        }
+        if (morning.open >= morning.close) {
+            alert("Morning opening time must be before closing time");
+            return;
+        }
+
+        // Afternoon validation
+        if (afternoon.enabled) {
+            if (!validateTime(afternoon.open, '12:00', '14:59') || !validateTime(afternoon.close, '12:00', '14:59')) {
+                alert("Afternoon session must be between 12:00 and 14:59 (2:59 PM)");
+                return;
+            }
+            if (afternoon.open >= afternoon.close) {
+                alert("Afternoon opening time must be before closing time");
+                return;
+            }
+        }
+
+        // Evening validation
+        if (evening.enabled) {
+            if (!validateTime(evening.open, '15:00', '23:00') || !validateTime(evening.close, '15:00', '23:00')) {
+                alert("Evening session must be between 15:00 (3 PM) and 23:00 (11 PM)");
+                return;
+            }
+            if (evening.open >= evening.close) {
+                alert("Evening opening time must be before closing time");
+                return;
+            }
+        }
+
         setLoading(true);
         try {
             const sessions = [
@@ -59,7 +99,7 @@ const ConfigureHoursScreen = () => {
             await api.post('/configure-hours', { gym_id: gymId, sessions });
             navigate('/upload-data', { state: { gymId } });
         } catch (err) {
-            alert("Failed to save hours");
+            alert(err.response?.data?.message || "Failed to save hours");
         } finally {
             setLoading(false);
         }

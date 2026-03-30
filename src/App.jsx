@@ -10,7 +10,6 @@ import HomeScreen from './pages/HomeScreen';
 import BookSlotScreen from './pages/BookSlotScreen';
 import BookingHistoryScreen from './pages/BookingHistoryScreen';
 import GymOwnerDashboardScreen from './pages/GymOwnerDashboardScreen';
-import SuperAdminDashboardScreen from './pages/SuperAdminDashboardScreen';
 import ProfileScreen from './pages/ProfileScreen';
 import EditProfileScreen from './pages/EditProfileScreen';
 import ForgotPasswordScreen from './pages/ForgotPasswordScreen';
@@ -81,9 +80,6 @@ function App() {
           {/* Admin Dashboards */}
           <Route path="/admin-dashboard" element={
             <PrivateRoute><GymOwnerDashboardScreen /></PrivateRoute>
-          } />
-          <Route path="/super-admin-dashboard" element={
-            <PrivateRoute><SuperAdminDashboardScreen /></PrivateRoute>
           } />
 
 

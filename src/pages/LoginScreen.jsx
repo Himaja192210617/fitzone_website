@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, LogIn, AlertCircle } from 'lucide-react';
+import { Mail, Lock, LogIn, AlertCircle, RefreshCw } from 'lucide-react';
 import api from '../api/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -34,11 +34,16 @@ const LoginScreen = () => {
         navigate('/setup-gym');
       } else if (next_page === 'select_gym') {
         navigate('/select-gym');
+      } else if (next_page === 'super_admin_dashboard') {
+        navigate('/super-admin-dashboard');
       } else {
         navigate('/dashboard');
       }
+
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid credentials. Please try again.');
+      const errorMessage = err.response?.data?.message || 'Invalid credentials. Please try again.';
+      setError(errorMessage);
+      alert(errorMessage); // Added popup as requested
     } finally {
       setLoading(false);
     }

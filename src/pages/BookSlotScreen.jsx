@@ -42,6 +42,8 @@ const BookSlotScreen = () => {
     const [loadingSlots, setLoadingSlots] = useState(false);
     const [loadingInsights, setLoadingInsights] = useState(false);
     const [submitting, setSubmitting] = useState(false);
+    const [gymHours, setGymHours] = useState([]);
+    const [userBookings, setUserBookings] = useState([]);
 
     const categories = [
         { name: "Cardio", subs: ["Treadmill", "Cycling", "Rowing", "Stair Climber", "Skipping"] },
@@ -87,8 +89,30 @@ const BookSlotScreen = () => {
         }
     };
 
+    const fetchGymHours = async () => {
+        if (!user?.gym_id) return;
+        try {
+            const response = await api.post('/get-gym-hours', { gym_id: user.gym_id });
+            setGymHours(response.data || []);
+        } catch (err) {
+            console.error('Error fetching gym hours:', err);
+        }
+    };
+
+    const fetchUserBookings = async () => {
+        if (!user?.user_id) return;
+        try {
+            const response = await api.get(`/history/${user.user_id}`);
+            setUserBookings(response.data || []);
+        } catch (err) {
+            console.error('Error fetching user bookings:', err);
+        }
+    };
+
     useEffect(() => {
         fetchSlots();
+        fetchGymHours();
+        fetchUserBookings();
     }, [apiDate, user]);
 
     const handleDateChange = (e) => {
@@ -97,9 +121,71 @@ const BookSlotScreen = () => {
         setDisplayDate(new Date(val).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }));
     };
 
+    const isSlotBookedByUser = (slotName) => {
+        return userBookings.some(b => 
+            b.date === apiDate && 
+            b.slot === slotName && 
+            b.status === 'active'
+        );
+    };
+
+    const parseTimeToMinutes = (timeStr) => {
+        if (!timeStr) return 0;
+        
+        // Handle "10:00 AM" format
+        if (timeStr.includes('AM') || timeStr.includes('PM')) {
+            const [time, modifier] = timeStr.split(' ');
+            let [hours, minutes] = time.split(':').map(Number);
+            if (modifier === 'PM' && hours < 12) hours += 12;
+            if (modifier === 'AM' && hours === 12) hours = 0;
+            return hours * 60 + minutes;
+        }
+        
+        // Handle "HH:MM" 24h format
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        return hours * 60 + minutes;
+    };
+
+    const getAvailableDuration = (slotTimeStr) => {
+        if (!gymHours || !slotTimeStr) return 120; // Default max if no data
+        
+        const slotMinutes = parseTimeToMinutes(slotTimeStr);
+        
+        // Find which session this slot belongs to
+        // Morning: 04:00 (240) to 11:59 (719)
+        // Afternoon: 12:00 (720) to 14:59 (899)
+        // Evening: 15:00 (900) to 23:00 (1380)
+        
+        let sessionType = "morning";
+        if (slotMinutes >= 720 && slotMinutes < 900) sessionType = "afternoon";
+        else if (slotMinutes >= 900) sessionType = "evening";
+        
+        const session = gymHours.find(s => s.session_type === sessionType);
+        if (!session) return 120;
+        
+        const closeMinutes = parseTimeToMinutes(session.close_time);
+        const maxMins = closeMinutes - slotMinutes;
+        
+        return maxMins > 0 ? maxMins : 0;
+    };
+
     const handleSlotSelect = (slot) => {
         setSelectedSlot(slot);
         fetchInsights(slot);
+        
+        // Check if current selected duration is still valid
+        const maxPossible = getAvailableDuration(slot.slot);
+        if (parseInt(selectedDuration) > maxPossible) {
+            // Find nearest valid allowed duration (30, 60, 90, 120)
+            const allowed = [30, 60, 90, 120];
+            const validOptions = allowed.filter(d => d <= maxPossible);
+            if (validOptions.length > 0) {
+                setSelectedDuration(Math.max(...validOptions).toString());
+            } else {
+                // If even 30 is too much, just set it to the maxPossible (or some fallback)
+                setSelectedDuration(maxPossible.toString());
+            }
+        }
     };
 
     const toggleWorkout = (sub) => {
@@ -108,8 +194,29 @@ const BookSlotScreen = () => {
         );
     };
 
+    useEffect(() => {
+        if (selectedSlot) {
+            const maxPossible = getAvailableDuration(selectedSlot.slot);
+            if (parseInt(selectedDuration) > maxPossible) {
+                const allowed = [30, 60, 90, 120];
+                const validOptions = allowed.filter(d => d <= maxPossible);
+                if (validOptions.length > 0) {
+                    setSelectedDuration(Math.max(...validOptions).toString());
+                } else if (maxPossible > 0) {
+                    setSelectedDuration(maxPossible.toString());
+                }
+            }
+        }
+    }, [selectedSlot, gymHours]);
+
     const handleConfirm = async () => {
         if (!user?.user_id || !selectedSlot) return;
+
+        if (isSlotBookedByUser(selectedSlot.slot)) {
+            alert("You already have an active booking for this slot.");
+            return;
+        }
+
         setSubmitting(true);
 
         // Group workouts by category
@@ -168,7 +275,13 @@ const BookSlotScreen = () => {
                                                 <h3 className="section-title-modern ml-12">Select Workout Date</h3>
                                             </div>
                                             <div className="date-picker-modern">
-                                                <input type="date" value={apiDate} onChange={handleDateChange} className="native-date-input" />
+                                                <input 
+                                                    type="date" 
+                                                    value={apiDate} 
+                                                    onChange={handleDateChange} 
+                                                    className="native-date-input" 
+                                                    min={new Date().toISOString().split('T')[0]}
+                                                />
                                                 <div className="display-date-overlay">
                                                     <span className="big-date-text">{displayDate}</span>
                                                     <ChevronDown size={18} color="#888" />
@@ -194,6 +307,7 @@ const BookSlotScreen = () => {
                                                         key={i}
                                                         data={slot}
                                                         isSelected={selectedSlot?.slot === slot.slot}
+                                                        isUserBooked={isSlotBookedByUser(slot.slot)}
                                                         onSelect={() => handleSlotSelect(slot)}
                                                     />
                                                 ))
@@ -267,16 +381,29 @@ const BookSlotScreen = () => {
                                         <div className="card-premium">
                                             <h3 className="section-title-modern mb-20">Session Duration</h3>
                                             <div className="duration-grid-modern">
-                                                {["30", "60", "90", "120"].map(d => (
-                                                    <button
-                                                        key={d}
-                                                        className={`dur-pill ${selectedDuration === d ? 'active' : ''}`}
-                                                        onClick={() => setSelectedDuration(d)}
-                                                    >
-                                                        <span className="dur-val">{d}</span>
-                                                        <span className="dur-min">min</span>
-                                                    </button>
-                                                ))}
+                                                {[30, 60, 90, 120].map(d => {
+                                                    const maxPossible = getAvailableDuration(selectedSlot.slot);
+                                                    const isDisabled = d > maxPossible;
+                                                    const isSelected = selectedDuration === d.toString();
+                                                    
+                                                    return (
+                                                        <button
+                                                            key={d}
+                                                            className={`dur-pill ${isSelected ? 'active' : ''} ${isDisabled ? 'disabled-dur' : ''}`}
+                                                            onClick={() => !isDisabled && setSelectedDuration(d.toString())}
+                                                            disabled={isDisabled}
+                                                            title={isDisabled ? `Session ends at ${gymHours.find(s => {
+                                                                const m = parseTimeToMinutes(selectedSlot.slot);
+                                                                if (m < 720) return s.session_type === 'morning';
+                                                                if (m < 900) return s.session_type === 'afternoon';
+                                                                return s.session_type === 'evening';
+                                                            })?.close_time}` : ''}
+                                                        >
+                                                            <span className="dur-val">{d}</span>
+                                                            <span className="dur-min">min</span>
+                                                        </button>
+                                                    );
+                                                })}
                                             </div>
                                         </div>
                                         
@@ -382,6 +509,8 @@ const BookSlotScreen = () => {
           cursor: pointer; transition: all 0.2s;
         }
         .dur-pill.active { background: white; border-color: var(--primary); color: var(--primary); box-shadow: 0 4px 12px rgba(27, 184, 91, 0.1); }
+        .dur-pill.disabled-dur { opacity: 0.4; cursor: not-allowed; background: #f0f0f0; border: 1px dashed #ccc; }
+        .dur-pill.disabled-dur .dur-val, .dur-pill.disabled-dur .dur-min { color: #888; }
         .dur-val { font-size: 16px; font-weight: 800; }
         .dur-min { font-size: 10px; font-weight: 600; opacity: 0.7; }
 
@@ -414,23 +543,28 @@ const BookSlotScreen = () => {
 };
 
 
-const SlotItem = ({ data, isSelected, onSelect }) => {
-    const statusColor = data.color === 'red' ? '#F44336' : data.color === 'yellow' ? '#FFC107' : '#4CAF50';
+const SlotItem = ({ data, isSelected, isUserBooked, onSelect }) => {
+    const statusColor = isUserBooked ? '#3B82F6' : (data.color === 'red' ? '#F44336' : data.color === 'yellow' ? '#FFC107' : '#4CAF50');
 
     return (
         <div
-            className={`slot-item ${isSelected ? 'selected' : ''}`}
-            onClick={onSelect}
-            style={{ borderColor: isSelected ? 'var(--primary)' : `${statusColor}44` }}
+            className={`slot-item ${isSelected ? 'selected' : ''} ${isUserBooked ? 'user-booked' : ''}`}
+            onClick={() => !isUserBooked && onSelect()}
+            style={{ 
+                borderColor: isSelected ? 'var(--primary)' : isUserBooked ? '#3B82F644' : `${statusColor}44`,
+                cursor: isUserBooked ? 'default' : 'pointer',
+                opacity: isUserBooked ? 0.8 : 1
+            }}
         >
             <div className="slot-left">
                 <div className="status-dot" style={{ backgroundColor: statusColor }}></div>
                 <span className="slot-time-text">{data.slot}</span>
             </div>
-            {isSelected ? <CheckCircle size={20} color="#1BB85B" /> : <span className="slot-status-label" style={{ color: statusColor }}>{data.status}</span>}
+            {isSelected ? <CheckCircle size={20} color="#1BB85B" /> : isUserBooked ? <span className="slot-status-label" style={{ color: '#3B82F6' }}>Already Booked</span> : <span className="slot-status-label" style={{ color: statusColor }}>{data.status}</span>}
             <style jsx>{`
-        .slot-item { display: flex; justify-content: space-between; align-items: center; padding: 16px; border: 2px solid transparent; border-radius: 12px; cursor: pointer; background: white; transition: all 0.2s; }
+        .slot-item { display: flex; justify-content: space-between; align-items: center; padding: 16px; border: 2px solid transparent; border-radius: 12px; transition: all 0.2s; background: white; }
         .slot-item.selected { background: #E8F5E9; }
+        .slot-item.user-booked { background: #EBF5FF; border-style: dashed; }
         .slot-left { display: flex; align-items: center; gap: 12px; }
         .status-dot { width: 12px; height: 12px; border-radius: 50%; }
         .slot-time-text { font-size: 16px; font-weight: 700; }

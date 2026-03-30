@@ -64,18 +64,76 @@ const UploadDataScreen = () => {
                     <div className="section-px">
                         <div className="spacer-24"></div>
 
-                        {/* Info Card */}
-                        <div className="card-premium mb-24 bg-soft-blue">
-                            <div className="flex items-start gap-12">
-                                <div className="info-icon-box-blue">
-                                    <Info size={18} color="#3B82F6" />
+                        {/* Format Instructions Card */}
+                        <div className="format-instruction-card">
+                            <h3 className="format-title">
+                                📋 Excel File Format Instructions
+                            </h3>
+
+                            {/* Historical Bookings Format */}
+                            <div className="format-section">
+                                <span className="format-subtitle">📅 Historical Bookings Format:</span>
+                                <div className="format-table-container">
+                                    <table className="format-table">
+                                        <thead>
+                                            <tr>
+                                                <th>date</th>
+                                                <th>slot</th>
+                                                <th>bookingCount</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>2026-02-01</td>
+                                                <td>06:00-07:00</td>
+                                                <td>8</td>
+                                            </tr>
+                                            <tr>
+                                                <td>2026-02-01</td>
+                                                <td>6 PM - 8 PM</td>
+                                                <td>15</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
-                                <div>
-                                    <h4 className="font-700 text-15 mb-4 text-blue-900">Training your AI Model</h4>
-                                    <p className="text-13 text-slate-600 line-15">
-                                        To predict crowd levels accurately, our AI needs your past 1 month of booking data and current member list.
-                                    </p>
+                            </div>
+
+                            {/* Gym Members Format */}
+                            <div className="format-section">
+                                <span className="format-subtitle">👥 Gym Members Format:</span>
+                                <div className="format-table-container">
+                                    <table className="format-table">
+                                        <thead>
+                                            <tr>
+                                                <th>memberId</th>
+                                                <th>name</th>
+                                                <th>email</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>MEM001</td>
+                                                <td>John Doe</td>
+                                                <td>john@example.com</td>
+                                            </tr>
+                                            <tr>
+                                                <td>MEM002</td>
+                                                <td>Jane Smith</td>
+                                                <td>jane@example.com</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
+                            </div>
+
+                            <span className="text-optional">* email column is optional</span>
+
+                            {/* Hint Box */}
+                            <div className="hint-box">
+                                <p className="hint-text">
+                                    <span>💡</span>
+                                    <span>Hint: Column headings in your Excel file must match the names in the first row of tables above exactly to avoid upload errors.</span>
+                                </p>
                             </div>
                         </div>
 
@@ -89,7 +147,7 @@ const UploadDataScreen = () => {
                                         {historicalFile ? historicalFile.name : "Select Historical File"}
                                     </span>
                                     <span className="upload-sub-text">
-                                        {historicalFile ? "File selected successfully" : "date, slot, bookingCount"}
+                                        {historicalFile ? "File selected successfully" : "Required columns: date, slot, bookingCount"}
                                     </span>
                                 </div>
                                 <input
@@ -112,7 +170,7 @@ const UploadDataScreen = () => {
                                         {membersFile ? membersFile.name : "Select Members File"}
                                     </span>
                                     <span className="upload-sub-text">
-                                        {membersFile ? "File selected successfully" : "memberId, name, email"}
+                                        {membersFile ? "File selected successfully" : "Required columns: memberId, name"}
                                     </span>
                                 </div>
                                 <input
@@ -164,6 +222,41 @@ const UploadDataScreen = () => {
                 .header-content-flex { display: flex; align-items: center; gap: 16px; }
                 .back-btn-modern { background: rgba(255,255,255,0.1); border: none; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
                 
+                .format-instruction-card { 
+                    background: #F0F9F5; border: 1.5px solid var(--primary); 
+                    border-radius: 20px; padding: 24px; margin-bottom: 32px;
+                }
+                .format-title { 
+                    font-size: 16px; font-weight: 800; color: var(--primary); 
+                    margin-bottom: 20px; display: flex; align-items: center; gap: 10px;
+                }
+                .format-section { margin-bottom: 20px; }
+                .format-subtitle { 
+                    font-size: 13px; font-weight: 700; color: #1E293B; 
+                    margin-bottom: 10px; display: block; 
+                }
+                .format-table-container { 
+                    background: white; border-radius: 12px; padding: 12px; 
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.03); overflow-x: auto;
+                }
+                .format-table { width: 100%; border-collapse: collapse; }
+                .format-table th { 
+                    text-align: left; padding: 8px 12px; background: #F8FAFC; 
+                    font-size: 11px; font-weight: 800; color: #64748B; border-radius: 6px;
+                }
+                .format-table td { padding: 8px 12px; font-size: 12px; color: #334155; font-weight: 500; }
+                
+                .text-optional { font-size: 11px; color: #94A3B8; font-style: italic; display: block; margin-bottom: 16px; }
+                
+                .hint-box { 
+                    background: #FFFBEB; border: 1px solid #FEF3C7; 
+                    border-radius: 12px; padding: 16px; 
+                }
+                .hint-text { 
+                    font-size: 12px; font-weight: 700; color: #92400E; 
+                    line-height: 1.5; display: flex; gap: 8px; margin: 0;
+                }
+
                 .bg-soft-blue { background: #EFF6FF; border: 1.5px solid #DBEAFE; }
                 .info-icon-box-blue { background: white; width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(59, 130, 246, 0.05); }
 

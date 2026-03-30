@@ -21,7 +21,6 @@ const Sidebar = () => {
         navigate('/login');
     };
 
-    const isSuperAdmin = window.location.pathname === '/super-admin-dashboard';
     const isGymOwner = user?.role === 'gym_owner' || user?.role === 'gym_administrator' || user?.next_page === 'gym_dashboard' || window.location.pathname.startsWith('/admin') || window.location.pathname.startsWith('/setup') || window.location.pathname.startsWith('/configure');
 
     const memberNavItems = [
@@ -35,15 +34,9 @@ const Sidebar = () => {
 
     const ownerNavItems = [
         { icon: <Home size={20} />, label: 'Admin Home', path: '/admin-dashboard' },
-        { icon: <Activity size={20} />, label: 'Import Data', path: '/upload-data' },
-        { icon: <History size={20} />, label: 'Gym Profile', path: '/setup-gym' },
     ];
 
-    const superAdminNavItems = [
-        { icon: <Home size={20} />, label: 'Master View', path: '/super-admin-dashboard' },
-    ];
-
-    const navItems = isSuperAdmin ? superAdminNavItems : isGymOwner ? ownerNavItems : memberNavItems;
+    const navItems = isGymOwner ? ownerNavItems : memberNavItems;
 
     return (
         <aside className="sidebar-web">
@@ -51,7 +44,7 @@ const Sidebar = () => {
                 <div className="logo-box">
                     <Dumbbell color="white" size={24} />
                 </div>
-                <span className="logo-text">Fit<span className="text-primary">Zone</span> Master</span>
+                <span className="logo-text">Fit<span className="text-primary">Zone</span></span>
             </div>
 
             <nav className="sidebar-nav">
@@ -73,8 +66,8 @@ const Sidebar = () => {
                         {user?.name?.charAt(0) || 'S'}
                     </div>
                     <div className="user-details">
-                        <span className="user-name-small">{user?.name || 'Super Admin'}</span>
-                        <span className="user-role-small">{isSuperAdmin ? 'Master Admin' : isGymOwner ? 'Gym Owner' : 'Member'}</span>
+                        <span className="user-name-small">{user?.name || 'User'}</span>
+                        <span className="user-role-small">{isGymOwner ? 'Gym Administrator' : 'Gym User'}</span>
                     </div>
                 </div>
                 <button onClick={handleLogout} className="logout-btn-web">

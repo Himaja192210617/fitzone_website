@@ -53,6 +53,27 @@ const GymSetupScreen = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        // Validation Checks
+        if (/\d/.test(formData.gymName)) {
+            alert("Gym Name should not contain any numbers");
+            return;
+        }
+
+        if (/^\d/.test(formData.email)) {
+            alert("Email address should not start with a number");
+            return;
+        }
+
+        if (!/^[6-9]/.test(formData.phone)) {
+            alert("Phone number must start with 6, 7, 8, or 9");
+            return;
+        }
+        if (!/^\d{10}$/.test(formData.phone)) {
+            alert("Phone number must be exactly 10 digits");
+            return;
+        }
+
         if (!isFormValid) return;
 
         setLoading(true);

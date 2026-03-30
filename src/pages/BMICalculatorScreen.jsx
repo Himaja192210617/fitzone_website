@@ -21,8 +21,23 @@ const BMICalculatorScreen = () => {
     const [bmiResult, setBmiResult] = useState(null);
 
     const calculateBMI = () => {
+        if (!height || !weight) {
+            alert("Please enter both height and weight");
+            return;
+        }
+
         const h = parseFloat(height);
         const w = parseFloat(weight);
+
+        if (isNaN(h) || h <= 0) {
+            alert("Please enter a valid height");
+            return;
+        }
+        if (isNaN(w) || w <= 0) {
+            alert("Please enter a valid weight");
+            return;
+        }
+
         if (h > 0 && w > 0) {
             const bmi = w / ((h / 100) * (h / 100));
             setBmiResult(bmi);

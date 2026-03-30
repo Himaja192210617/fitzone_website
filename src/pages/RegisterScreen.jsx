@@ -29,10 +29,51 @@ const RegisterScreen = () => {
         { label: "Gym Administrator", value: "gym_administrator" }
     ];
 
+
     const handleRegister = async (e) => {
         e.preventDefault();
         if (formData.password !== formData.confirmPassword) {
-            setError("Passwords do not match");
+            const msg = "Passwords do not match";
+            alert(msg);
+            setError(msg);
+            return;
+        }
+
+        // Name validation: should not contain numbers
+        if (/\d/.test(formData.name)) {
+            const msg = "Name should not contain numbers";
+            alert(msg);
+            setError(msg);
+            return;
+        }
+
+        // Age validation: not more than 125
+        if (parseInt(formData.age) > 125) {
+            const msg = "Age cannot be more than 125";
+            alert(msg);
+            setError(msg);
+            return;
+        }
+
+        // Email validation: should not start with a number
+        if (/^\d/.test(formData.email)) {
+            const msg = "Email address should not start with a number";
+            alert(msg);
+            setError(msg);
+            return;
+        }
+
+        // Mobile validation: should start with 6, 7, 8, or 9 and be 10 digits
+        if (!/^[6-9]/.test(formData.mobile)) {
+            const msg = "Mobile number must start with 6, 7, 8, or 9";
+            alert(msg);
+            setError(msg);
+            return;
+        }
+        if (!/^\d{10}$/.test(formData.mobile)) {
+            const msg = "Mobile number must be exactly 10 digits";
+            alert(msg);
+            setError(msg);
             return;
         }
 
@@ -51,7 +92,9 @@ const RegisterScreen = () => {
             });
             navigate('/login');
         } catch (err) {
-            setError(err.response?.data?.message || 'Registration failed');
+            const msg = err.response?.data?.message || 'Registration failed';
+            alert(msg);
+            setError(msg);
         } finally {
             setLoading(false);
         }

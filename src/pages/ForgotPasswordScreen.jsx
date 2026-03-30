@@ -15,13 +15,24 @@ const ForgotPasswordScreen = () => {
 
     const handleSendOTP = async (e) => {
         e.preventDefault();
+
+        // Email validation: should not start with a number
+        if (/^\d/.test(email)) {
+            const msg = "Email address should not start with a number";
+            alert(msg);
+            setMessage({ text: msg, type: 'error' });
+            return;
+        }
+
         setLoading(true);
         try {
             await api.post('/forgot-password', { email });
             setStep(2);
             setMessage({ text: 'OTP sent to your email', type: 'success' });
         } catch (err) {
-            setMessage({ text: err.response?.data?.message || 'Email not found', type: 'error' });
+            const msg = err.response?.data?.message || 'Email not found';
+            alert(msg);
+            setMessage({ text: msg, type: 'error' });
         } finally {
             setLoading(false);
         }
@@ -35,7 +46,9 @@ const ForgotPasswordScreen = () => {
     const handleReset = async (e) => {
         e.preventDefault();
         if (newPassword !== confirmPassword) {
-            setMessage({ text: 'Passwords do not match', type: 'error' });
+            const msg = 'Passwords do not match';
+            alert(msg);
+            setMessage({ text: msg, type: 'error' });
             return;
         }
         setLoading(true);
@@ -44,7 +57,9 @@ const ForgotPasswordScreen = () => {
             setMessage({ text: 'Password reset successful!', type: 'success' });
             setTimeout(() => navigate('/login'), 2000);
         } catch (err) {
-            setMessage({ text: err.response?.data?.message || 'Invalid OTP or expired', type: 'error' });
+            const msg = err.response?.data?.message || 'Invalid OTP or expired';
+            alert(msg);
+            setMessage({ text: msg, type: 'error' });
         } finally {
             setLoading(false);
         }
